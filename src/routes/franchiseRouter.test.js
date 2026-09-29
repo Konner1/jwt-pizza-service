@@ -1,4 +1,4 @@
-const { app, request, DB, randomName, registerDiner, createAdmin, createFranchise } = require('../testHelper.js');
+const { app, request, randomName, registerDiner, createAdmin, createFranchise } = require('../testHelper.js');
 
 let admin;
 let franchisee;
