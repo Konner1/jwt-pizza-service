@@ -42,9 +42,28 @@ test('delete user is not implemented yet', async () => {
   expect(res.body.message).toBe('not implemented');
 });
 
-test('list users is not implemented yet', async () => {
+test('list users requires auth', async () => {
+  const res = await request(app).get('/api/user');
+  expect(res.status).toBe(401);
+});
+
+test('non-admin cannot list users', async () => {
   const { token } = await registerDiner();
   const res = await request(app).get('/api/user').set('Authorization', `Bearer ${token}`);
+  expect(res.status).toBe(403);
+});
+
+test('admin can list, paginate and filter users', async () => {
+  const { token } = await createAdmin();
+  const { user } = await registerDiner();
+
+  const res = await request(app).get('/api/user?page=0&limit=2').set('Authorization', `Bearer ${token}`);
   expect(res.status).toBe(200);
-  expect(res.body).toEqual({ message: 'not implemented', users: [], more: false });
+  expect(res.body.users.length).toBeLessThanOrEqual(2);
+  expect(res.body.users[0]).toHaveProperty('email');
+  expect(res.body.users[0]).not.toHaveProperty('password');
+  expect(res.body.more).toBe(true);
+
+  const filtered = await request(app).get(`/api/user?name=${user.name}`).set('Authorization', `Bearer ${token}`);
+  expect(filtered.body.users.some((u) => u.id === user.id)).toBe(true);
 });
