@@ -35,12 +35,27 @@ test('an admin can update a different user', async () => {
   expect(res.body.user).toMatchObject({ id: diner.id, name: newName, email: diner.email });
 });
 
-test('delete user is not implemented yet', async () => {
+test('delete user requires auth', async () => {
+  const res = await request(app).delete('/api/user/1');
+  expect(res.status).toBe(401);
+});
+
+test('non-admin cannot delete users', async () => {
   const { user, token } = await registerDiner();
   const res = await request(app).delete(`/api/user/${user.id}`).set('Authorization', `Bearer ${token}`);
-  expect(res.status).toBe(200);
-  expect(res.body.message).toBe('not implemented');
+  expect(res.status).toBe(403);
 });
+
+test('admin can delete a user', async () => {
+  const { token } = await createAdmin();
+  const { user } = await registerDiner();
+  const res = await request(app).delete(`/api/user/${user.id}`).set('Authorization', `Bearer ${token}`);
+  expect(res.status).toBe(200);
+
+  const list = await request(app).get(`/api/user?name=${user.name}`).set('Authorization', `Bearer ${token}`);
+  expect(list.body.users.some((u) => u.id === user.id)).toBe(false);
+});
+
 
 test('list users requires auth', async () => {
   const res = await request(app).get('/api/user');
