@@ -57,7 +57,7 @@ test('create an order that the factory fulfills', async () => {
   expect(res.body.followLinkToEndChaos).toBe('https://report');
 
   // The service forwards the order to the factory with the API key.
-  const [url, options] = fetchSpy.mock.calls[0];
+  const [url, options] = fetchSpy.mock.calls.find(([u]) => /\/api\/order$/.test(u));
   expect(url).toMatch(/\/api\/order$/);
   expect(options.headers.authorization).toMatch(/^Bearer /);
 });
